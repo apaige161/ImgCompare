@@ -2,14 +2,22 @@ import cv2
 from cv2 import dilate
 import imutils
 import numpy as np
+import time
+start_time = time.time()
+
+
+
+
 
 title1 = 'Original'
 path1 = 'img/beach.jpeg'
 title2 = 'Altered'
 path2 = 'img/beach_altered.jpeg'
 
+savedImgPath = "imgDiff/newImg.jpeg"
+
 # Get data from user
-print('Comparing 2 images...')
+print('\n\nComparing 2 images...\n\n')
 # print('Enter path to original image:')
 # path1 = input()
 # print('Enter path to next image:')
@@ -35,6 +43,14 @@ gray2 = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
 diff = cv2.absdiff(gray1, gray2)
 # cv2.imshow("diff(img1,img2)", diff)
 
+# TODO: further investigation on how this part works
+    # GOAL: reduce processing time be not running other functions if not needed
+if not np.array_equiv(gray1, gray2):
+    print("Difference found at gray scale, processing...")
+
+else:
+    print("No difference between images found at gray scale")
+
 # apply threshold
 # get binary image out of grayscale
 # cv2.threshold(image, pixel_value_threshold, max_pixel_values, type_of_threshold)
@@ -51,26 +67,33 @@ dilate = cv2.dilate(thresh, kernel, iterations=2)
 contours = cv2.findContours(dilate.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 contours = imutils.grab_contours(contours)
 
-# loop over contours, draw rectangle around it
-for contour in contours:
-    if(cv2.contourArea(contour) > 100):
-        # calc bounds
-        x, y, w, h = cv2.boundingRect(contour)
-        # draw rectangle 
-        cv2.rectangle(img1, (x,y), (x+w, y+h), (0,0,255), 2)
-        cv2.rectangle(img2, (x,y), (x+w, y+h), (0,0,255), 2)
+if not contours:
 
+    print("No difference found at contour check")
+else: 
+    print("Difference found at contour check, processing...")
+    # loop over contours, draw rectangle around it
+    for contour in contours:
+        if(cv2.contourArea(contour) > 50):
+            # calc bounds
+            x, y, w, h = cv2.boundingRect(contour)
+            # draw rectangle 
+            cv2.rectangle(img1, (x,y), (x+w, y+h), (0,0,255), 2)
+            cv2.rectangle(img2, (x,y), (x+w, y+h), (0,0,255), 2)
+        else:
+            print("No difference")
 
-# show final images with differences
-# stack images
-x = np.zeros( (360,10,3), np.uint8) # add space between imgs
-result = np.hstack( (img1, x, img2) )
-cv2.imshow("Differences", result)
+    # show final images with differences
+    # stack images
+    x = np.zeros( (360,10,3), np.uint8) # add space between imgs
+    result = np.hstack( (img1, x, img2) )
+    # cv2.imshow("Differences", result)
 
+    #save image
+    cv2.imwrite(savedImgPath, result)
+    print("\n\nImage saved at '" + savedImgPath + "'\n\n")
 
-# show the two images
-# cv2.imshow(title1, img1)
-# cv2.imshow(title2, img2)
 
 cv2.waitKey(0)
 cv2.destroyAllWindows()
+print("--- %s seconds ---" % (time.time() - start_time))
