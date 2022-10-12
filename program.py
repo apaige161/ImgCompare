@@ -3,6 +3,9 @@ from cv2 import dilate
 import imutils
 import numpy as np
 import time
+from sys import argv
+
+
 start_time = time.time()
 
 
@@ -10,9 +13,14 @@ start_time = time.time()
 
 
 title1 = 'Original'
-path1 = 'img/beach.jpeg'
 title2 = 'Altered'
-path2 = 'img/beach_altered.jpeg'
+if(argv[1] == ""):
+    path1 = 'img/beach.jpeg'
+    path2 = 'img/beach_altered.jpeg'
+else:
+    path1 = argv[1]
+    path2 = argv[2]
+
 
 savedImgPath = "imgDiff/newImg.jpeg"
 
