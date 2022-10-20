@@ -1,8 +1,10 @@
+from asyncio.windows_events import NULL
 import cv2
 from cv2 import dilate
 import imutils
 import numpy as np
 import time
+import sys
 from sys import argv
 
 
@@ -14,34 +16,31 @@ start_time = time.time()
 
 title1 = 'Original'
 title2 = 'Altered'
-if(argv[1] == ""):
-    path1 = 'img/beach.jpeg'
-    path2 = 'img/beach_altered.jpeg'
-else:
+if(len(sys.argv) == 2):
     path1 = argv[1]
     path2 = argv[2]
-
+else:
+    path1 = 'img/beach.jpeg'
+    path2 = 'img/beach_altered.jpeg'
 
 savedImgPath = "imgDiff/newImg.jpeg"
 
 # Get data from user
 print('\n\nComparing 2 images...\n\n')
-# print('Enter path to original image:')
-# path1 = input()
-# print('Enter path to next image:')
-# path2 = input()
-
-# TODO: File found validation
-# TODO: File type validation
 
 
 # Load 2 images
 img1 = cv2.imread(path1)
 img2 = cv2.imread(path2)
 
+if (img1.any() or img2.any()) is None:
+    sys.exit("Could not read the image.")
+
 # resize
-img1 = cv2.resize(img1, (600,360))
-img2 = cv2.resize(img2, (600,360))
+imgX = 600
+imgY = 360
+img1 = cv2.resize(img1, (imgX,imgY))
+img2 = cv2.resize(img2, (imgX,imgY))
 
 # greyscale
 gray1 = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
@@ -95,7 +94,14 @@ else:
     # stack images
     x = np.zeros( (360,10,3), np.uint8) # add space between imgs
     result = np.hstack( (img1, x, img2) )
-    # cv2.imshow("Differences", result)
+
+    # create a border
+    result = cv2.copyMakeBorder(result,10,35,10,10,cv2.BORDER_CONSTANT)
+
+    # write text on image
+    numbDifferences = str(len(contours))
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    cv2.putText(result,'Number of differences: '+ numbDifferences,(10,imgY - 10), font, 2,(255,255,255),4,cv2.LINE_AA)
 
     #save image
     cv2.imwrite(savedImgPath, result)
